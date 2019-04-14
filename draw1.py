@@ -7,12 +7,12 @@ Created on Sat Apr 13 18:48:05 2019
 
 import cv2
 import numpy as np
+
 import os
 import matplotlib.pyplot as plt
 import logging
 import re
 from collections import deque
-
 
 
 # Read img
@@ -56,8 +56,6 @@ def true_plot(xx_data,yy_data,true,pause_time=0.001):
     return true
 
 
-
-
 # Create figure for plotting
 plt.close('all')
 
@@ -65,8 +63,8 @@ plt.close('all')
 #plt.style.use('ggplot')
 #plt.xticks(())
 #plt.yticks(())
-#plt.ylim([-100,100])
-#plt.xlim([-100,100])
+#plt.ylim([-300,300])
+#plt.xlim([-300,300])
 #plt.ylabel('Backward <--> Forward', fontsize='12')
 #plt.xlabel('Left  <-->  Right', fontsize='12')
 
@@ -86,10 +84,21 @@ plt.xlabel('Left  <-->  Right', fontsize='12')
 IMG_DIR = 'image_0/'
 logging.basicConfig(level=logging.INFO)
 
-with open('KITTI  sample dataset/dataset/poses/00.txt', 'r') as f:
-    transformation = np.array([float(x) if len(x) else None for x in re.split('\n| ', f.read())])
-size = len(transformation) // 12
-translation = np.reshape(transformation[3::4], (size, 3))
+#with open('KITTI  sample dataset/dataset/poses/00.txt', 'r') as f:
+#    transformation = np.array([float(x) if len(x) else None for x in re.split('\n| ', f.read())])
+#size = len(transformation) // 12
+#translation = np.reshape(transformation[3::4], (size, 3))
+
+
+read = np.loadtxt('KITTI  sample dataset/dataset/poses/00.txt')
+Rs = np.reshape(read,(3*len(read),4))[:,:-1]
+translation = np.reshape(np.reshape(read,(3*len(read),4))[:,-1:],(len(read),3))
+rotation = np.zeros([len(read),3,3])
+rotation[0:len(read),0,:] = Rs[::3,:]
+rotation[0:len(read),1,:] = Rs[1::3,:]
+rotation[0:len(read),2,:] = Rs[2::3,:]
+
+
 
 T = np.zeros((3, 1))
 R = np.eye(3)
@@ -109,48 +118,48 @@ Yt = deque([0.0]*memory)
 # Main
 for root,dirs,files in os.walk(IMG_DIR):
     for i, f in enumerate(files):
-#        IMG_NAME_2 = f
-#        if f == '000000.png':
-#            IMG_NAME_1 = IMG_NAME_2
-#            continue
-#        img_1, img_2 = read_image(IMG_DIR, IMG_NAME_1, IMG_NAME_2)
-#        #logging.info(f + "is read.")
-#        #print(f + "is read.")
-#        
-#        ###SIFT###
-#        sift = cv2.xfeatures2d.SIFT_create()
-#        kp1, des1 = sift.detectAndCompute(img_1,None)
-#        kp2, des2 = sift.detectAndCompute(img_2,None)
-#        SIFT_1 = cv2.drawKeypoints(img_1, kp1, None, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-#        SIFT_2 = cv2.drawKeypoints(img_2, kp2, None, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-#
-#        ###FIND MATCHES###
-#        FLANN_INDEX_KDTREE = 0
-#        index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-#        search_params = dict(checks=50)
-#        flann = cv2.FlannBasedMatcher(index_params,search_params)
-#        matches = flann.knnMatch(des1,des2,k=2)
-#        good = []
-#        pts1 = []
-#        pts2 = []
-#        for i,(m,n) in enumerate(matches):
-#            if m.distance < 0.8*n.distance:
-#                good.append(m)
-#                pts2.append(kp2[m.trainIdx].pt)
-#                pts1.append(kp1[m.queryIdx].pt)
-#                
-#        ###FIND ESSENTIALMATRIX###
-#        pts1_E = np.asarray(pts1)
-#        pts2_E = np.asarray(pts2)
-#        E, mask = cv2.findEssentialMat(pts1_E, pts2_E)
-#        pts1_E = pts1_E[mask.ravel()==1]
-#        pts2_E = pts2_E[mask.ravel()==1]
-#        points, r, t, mask = cv2.recoverPose(E, pts1_E, pts2_E)
-#        
-#
-#        ###CALCULATE R AND T###
-#        T += -R@t
-#        R = r@R
+        IMG_NAME_2 = f
+        if f == '000000.png':
+            IMG_NAME_1 = IMG_NAME_2
+            continue
+        img_1, img_2 = read_image(IMG_DIR, IMG_NAME_1, IMG_NAME_2)
+        #logging.info(f + "is read.")
+        #print(f + "is read.")
+        
+        ###SIFT###
+        sift = cv2.xfeatures2d.SIFT_create()
+        kp1, des1 = sift.detectAndCompute(img_1,None)
+        kp2, des2 = sift.detectAndCompute(img_2,None)
+        SIFT_1 = cv2.drawKeypoints(img_1, kp1, None, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        SIFT_2 = cv2.drawKeypoints(img_2, kp2, None, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+        ###FIND MATCHES###
+        FLANN_INDEX_KDTREE = 0
+        index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
+        search_params = dict(checks=50)
+        flann = cv2.FlannBasedMatcher(index_params,search_params)
+        matches = flann.knnMatch(des1,des2,k=2)
+        good = []
+        pts1 = []
+        pts2 = []
+        for j,(m,n) in enumerate(matches):
+            if m.distance < 0.8*n.distance:
+                good.append(m)
+                pts2.append(kp2[m.trainIdx].pt)
+                pts1.append(kp1[m.queryIdx].pt)
+                
+        ###FIND ESSENTIALMATRIX###
+        pts1_E = np.asarray(pts1)
+        pts2_E = np.asarray(pts2)
+        E, mask = cv2.findEssentialMat(pts1_E, pts2_E)
+        pts1_E = pts1_E[mask.ravel()==1]
+        pts2_E = pts2_E[mask.ravel()==1]
+        points, r, t, mask = cv2.recoverPose(E, pts1_E, pts2_E)
+        
+
+        ###CALCULATE R AND T###
+        T += -R.dot(t)
+        R = r.dot(R)
         
         ###PLOT###
         DATA1 = np.zeros(2)
