@@ -41,7 +41,7 @@ def real_plot(xx_data,yy_data,mark,pause_time=0.001):
 
 def true_plot(xx_data,yy_data,true,pause_time=0.001):
     if true==[]:
-        true, = ax1.plot(xx_data,yy_data,'o',alpha=0.8)
+        true, = ax2.plot(xx_data,yy_data,'o',alpha=0.8)
     true.set_data(xx_data,yy_data)
     #plt.draw()
     plt.pause(pause_time)
@@ -64,24 +64,23 @@ R = np.eye(3)
 plt.close('all')
 G = gridspec.GridSpec(1, 2)
 #plt.ion()
-plt.style.use('ggplot')
 
 fig1, ax1 = plt.subplots()
-
+plt.style.use('ggplot')
 plt.xticks(())
 plt.yticks(())
-plt.ylim([-200,200])
-plt.xlim([-200,200])
+plt.ylim([-100,100])
+plt.xlim([-100,100])
 plt.ylabel('Backward <--> Forward', fontsize='12')
 plt.xlabel('Left  <-->  Right', fontsize='12')
 
 
 fig2, ax2 =plt.subplots()
-
+plt.style.use('ggplot')
 plt.xticks(())
 plt.yticks(())
-plt.ylim([-200,200])
-plt.xlim([-200,200])
+plt.ylim([-400,400])
+plt.xlim([-400,400])
 plt.ylabel('Backward <--> Forward', fontsize='12')
 plt.xlabel('Left  <-->  Right', fontsize='12')
 
@@ -90,7 +89,8 @@ plt.xlabel('Left  <-->  Right', fontsize='12')
 mark = []
 true = []
 memory = 500
-buffer = np.zeros([2,memory])
+buffer1 = np.zeros([2,memory])
+buffer2 = np.zeros([2,memory])
 
 
 for root,dirs,files in os.walk(IMG_DIR):
@@ -143,15 +143,27 @@ for root,dirs,files in os.walk(IMG_DIR):
         DATA = np.zeros(2)
         DATA[0] = T[0, 0]
         DATA[1] = T[1, 0]
+        
+        DATA2 = np.zeros(2)
+        DATA2[0] = translation[i, 0]
+        DATA2[1] = translation[i, 1]
 
-        buffer = addData(DATA,buffer)
-        Y = buffer[0,:]
-        X = -buffer[1,:]
+        buffer1 = addData(DATA,buffer1)
+        buffer2 = addData(DATA2,buffer2)
+        
+        Y = buffer1[0,:]
+        X = -buffer1[1,:]
+        
+        Yt = buffer2[0,:]
+        Xt = buffer2[1,:]
+
+
+
         mark = real_plot(X,Y,mark)
-        #mark = real_plot(X,Y,mark,translation[i,1],translation[i,0])
-        true = true_plot(translation[i,1],translation[i,0],true)
+        true = true_plot(Xt,Yt,true)
         
-        
+#        if (i >= 400):
+#            break
         
         
         ###PLOT###
