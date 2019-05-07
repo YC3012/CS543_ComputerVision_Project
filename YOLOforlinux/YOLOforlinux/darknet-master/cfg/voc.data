@@ -1,0 +1,6 @@
+classes= 3
+train  = /home/yite/YOLOforlinux/darknet-master/scripts/train.txt
+valid  = /home/yite/YOLOforlinux/darknet-master/scripts/test.txt
+names = data/voc.names
+backup = backup
+
